@@ -4,10 +4,10 @@
   How to edit (simple):
   - Colors/look: change CSS in :root below.
   - Defaults: edit the DEFAULT object in the script (start date, days, times, rotation).
-  - Use the "Configurar" button for most changes (no coding needed).
+  - Use the "Configure" button for most changes (no coding needed).
   - Your data is saved locally in this browser (localStorage). Use Export/Import to move it.
 -->
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
@@ -106,11 +106,11 @@
         <span class="badge">SELF‑CONTAINED • OFFLINE • LOCAL MEMORY</span>
         <h1 style="margin:0; font-size:20px">Office Micro‑Gym — 12‑Day Sprint</h1>
         <div class="spacer"></div>
-        <button id="btn-settings" title="Editar configuración">⚙️ Configurar</button>
-        <button id="btn-export" title="Exportar progreso">⤴️ Exportar</button>
-        <button id="btn-import" title="Importar progreso">⤵️ Importar</button>
-        <button id="btn-reset" title="Borrar todo">🗑️ Reset</button>
-        <button id="btn-achv" title="Ver logros">🏅 Logros</button>
+        <button id="btn-settings" title="Edit settings">⚙️ Configure</button>
+        <button id="btn-export" title="Export progress">⤴️ Export</button>
+        <button id="btn-import" title="Import progress">⤵️ Import</button>
+        <button id="btn-reset" title="Delete all">🗑️ Reset</button>
+        <button id="btn-achv" title="View achievements">🏅 Achievements</button>
       </div>
     </div>
   </header>
@@ -121,66 +121,66 @@
   <!-- Legend: just informational text, edit freely -->
   <div class="wrap">
     <div class="legend">
-      <span class="pill">8:30: 12 push‑ups + 12 por brazo</span>
-      <span class="pill">12:00: Mancuerna 1→12 por brazo; Push‑ups sin objetivo</span>
-      <span class="pill">16:00: Push‑ups 1→12 y Mancuerna 1→12 por brazo</span>
-      <span class="pill">Domingos omitidos automáticamente</span>
-      <span class="pill">Rotación de Mancuerna: Curl → Press → Row</span>
+      <span class="pill">8:30: 12 push‑ups + 12 per arm</span>
+      <span class="pill">12:00: Dumbbell 1→12 per arm; Push‑ups no target</span>
+      <span class="pill">16:00: Push‑ups 1→12 and Dumbbell 1→12 per arm</span>
+      <span class="pill">Sundays automatically omitted</span>
+      <span class="pill">Dumbbell rotation: Curl → Press → Row</span>
     </div>
-    <p class="hint">Consejo: abre este archivo con doble clic, guárdalo en tu Escritorio. Todo queda guardado en tu navegador (localStorage). No necesita Internet.</p>
+    <p class="hint">Tip: open this file with double click, save it on your Desktop. Everything is saved in your browser (localStorage). No Internet needed.</p>
   </div>
 
   <!-- Confetti container (celebration) and toast (small popup message) -->
   <div class="boom" id="boom"></div>
   <div class="toast" id="toast"></div>
 
-  <!-- Settings modal: opened by the "Configurar" button -->
+  <!-- Settings modal: opened by the "Configure" button -->
   <dialog id="modal">
     <div class="modal-head">
-      <strong>Configuración</strong>
+      <strong>Settings</strong>
       <button onclick="modal.close()">✖</button>
     </div>
     <div class="modal-body">
       <div class="row">
-        <label>Fecha de inicio
+        <label>Start date
           <input id="cfg-start" type="date">
         </label>
-        <label>Días hábiles del sprint
+        <label>Sprint working days
           <input id="cfg-days" type="number" min="1" max="60" />
         </label>
       </div>
       <div class="row">
-        <label>Omitir día de la semana
+        <label>Skip weekday
           <select id="cfg-skip">
-            <option value="-1">No omitir</option>
-            <option value="0" selected>Domingo</option>
-            <option value="6">Sábado</option>
+            <option value="-1">Do not skip</option>
+            <option value="0" selected>Sunday</option>
+            <option value="6">Saturday</option>
           </select>
         </label>
-        <label>Rotación Mancuerna
-          <input id="cfg-rotation" type="text" placeholder="Separadas por coma" />
+        <label>Dumbbell rotation
+          <input id="cfg-rotation" type="text" placeholder="Comma separated" />
         </label>
       </div>
       <div class="switch">
         <input id="cfg-midPU" type="checkbox" />
-        <label for="cfg-midPU">Push‑ups con progresión al mediodía (1→12)</label>
+        <label for="cfg-midPU">Push‑ups with midday progression (1→12)</label>
       </div>
       <div class="row">
-        <label>Horario mañana
+        <label>Morning time
           <input id="cfg-t1" type="text" placeholder="8:30 AM" />
         </label>
-        <label>Horario mediodía
+        <label>Midday time
           <input id="cfg-t2" type="text" placeholder="12:00 PM" />
         </label>
       </div>
       <div class="row">
-        <label>Horario tarde
+        <label>Afternoon time
           <input id="cfg-t3" type="text" placeholder="4:00 PM" />
         </label>
         <div></div>
       </div>
       <div style="display:flex; gap:10px; justify-content:flex-end; padding-top:8px">
-        <button id="cfg-save">Guardar</button>
+        <button id="cfg-save">Save</button>
       </div>
     </div>
   </dialog>
@@ -188,7 +188,7 @@
   <!-- Achievements: list modal (read-only) -->
   <dialog id="achv-list">
     <div class="modal-head">
-      <strong>Logros</strong>
+      <strong>Achievements</strong>
       <button onclick="document.getElementById('achv-list').close()">✖</button>
     </div>
     <div class="modal-body" id="achv-body" style="display:grid; gap:10px"></div>
@@ -197,12 +197,12 @@
   <!-- Achievements: final challenge modal -->
   <dialog id="achv-modal">
     <div class="modal-head">
-      <strong>🏆 ¡Reto completado!</strong>
+      <strong>🏆 Challenge completed!</strong>
       <button onclick="document.getElementById('achv-modal').close()">✖</button>
     </div>
     <div class="modal-body">
-      <p style="margin:0 0 8px 0">¡Reto de 12 días completado! Eres una máquina.</p>
-      <button class="btn" onclick="document.getElementById('achv-modal').close()">Cerrar</button>
+      <p style="margin:0 0 8px 0">12-day challenge completed! You are a machine.</p>
+      <button class="btn" onclick="document.getElementById('achv-modal').close()">Close</button>
     </div>
   </dialog>
 
@@ -213,7 +213,7 @@
   const STORAGE_KEY = 'office_micro_gym_v2';
   const todayISO = d2iso(new Date());
 
-  // Defaults: change these to fit your plan. You can also use the Configurar button.
+  // Defaults: change these to fit your plan. You can also use the Configure button.
   const DEFAULT = {
     startDate: '2025-08-20',
     totalDays: 12, // How many active days to include
@@ -334,7 +334,7 @@
   // Confetti animation for small wins and targets reached
   function celebrate(x,y,big=false){
     const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReduced){ toast('¡Objetivo alcanzado!'); return; }
+    if (prefersReduced){ toast('Target reached!'); return; }
     const boom = document.getElementById('boom');
     const colors = ['#56f0c4','#67ff9b','#8ef','#ffd166','#ff6b6b','#c084fc'];
     for(let i=0;i<(big?80:28);i++){
@@ -370,7 +370,7 @@
       const pill = document.createElement('span');
       pill.id = 'xp-pill';
       pill.className = 'badge';
-      pill.title = 'XP diario / total';
+      pill.title = 'Daily XP / total';
       pill.textContent = `XP: ${g.xpToday}/${goal} · Total: ${g.xpTotal}`;
       t.appendChild(pill);
     })();
@@ -396,8 +396,8 @@
       ring.innerHTML = `<span style="position:absolute; font-size:11px">${pct}%</span>`;
       const info = document.createElement('div');
       info.className='day-info';
-      info.innerHTML = `<div style="font-weight:700">${dateNice(day.iso)} ${day.iso===todayISO?'<span class="pill" style="margin-left:6px">HOY</span>':''}</div>
-                        <small>Mancuerna: ${day.title}</small>`;
+      info.innerHTML = `<div style="font-weight:700">${dateNice(day.iso)} ${day.iso===todayISO?'<span class="pill" style="margin-left:6px">TODAY</span>':''}</div>
+                        <small>Dumbbell: ${day.title}</small>`;
       head.appendChild(ring); head.appendChild(info);
       card.appendChild(head);
 
@@ -412,7 +412,7 @@
         if(!state.achievements.days) state.achievements.days = {};
         state.achievements.days[day.iso] = true;
         save();
-        toast('Day Master: ¡100% completado!');
+        toast('Day Master: 100% completed!');
         const rectBody = document.body.getBoundingClientRect();
         celebrate(rectBody.width/2, 120, true);
 
@@ -421,7 +421,7 @@
           if(!state.achievements.weeks[day.iso]){
             state.achievements.weeks[day.iso] = true;
             save();
-            toast('Week Finisher: ¡Viernes completado al 100%!');
+            toast('Week Finisher: Friday 100% completed!');
             megaCelebrate();
           }
         }
@@ -432,11 +432,11 @@
       card.appendChild(renderSlot('evening', state.cfg.times[2]||'4:00 PM', day, p));
 
       const foot = document.createElement('div'); foot.className='footer';
-      const resetBtn = document.createElement('button'); resetBtn.textContent='Reiniciar día';
-      resetBtn.onclick=()=>{ state.progress[day.iso] = { morning:{pushups:0,dumbR:0,dumbL:0}, midday:{pushups:0,dumbR:0,dumbL:0}, evening:{pushups:0,dumbR:0,dumbL:0} }; save(); render(); toast('Progreso del día reiniciado'); };
+      const resetBtn = document.createElement('button'); resetBtn.textContent='Reset day';
+      resetBtn.onclick=()=>{ state.progress[day.iso] = { morning:{pushups:0,dumbR:0,dumbL:0}, midday:{pushups:0,dumbR:0,dumbL:0}, evening:{pushups:0,dumbR:0,dumbL:0} }; save(); render(); toast('Day progress reset'); };
       foot.appendChild(resetBtn);
       const hint = document.createElement('div'); hint.className='hint';
-      hint.textContent = 'Completa objetivos para desbloquear confetti ✨';
+      hint.textContent = 'Complete targets to unlock confetti ✨';
       foot.appendChild(hint);
       card.appendChild(foot);
 
@@ -492,7 +492,7 @@
       const t = document.querySelector('.title'); if(!t) return;
       let b = document.getElementById('streak-badge');
       if(!b){ b = document.createElement('span'); b.id='streak-badge'; b.className='badge'; t.appendChild(b); }
-      b.textContent = `🔥 Streak: ${state.gamify.streak} (mejor: ${state.gamify.streakBest})`;
+      b.textContent = `🔥 Streak: ${state.gamify.streak} (best: ${state.gamify.streakBest})`;
     })();
 
     // Grant badges based on achievements and totals
@@ -527,12 +527,12 @@
     const head = document.createElement('div'); head.className='slot-head';
     head.innerHTML = `<div class="when">${whenLabel}</div>`;
     const doneAll = (prog[key].pushups>=tgt.pushups && prog[key].dumbR>=tgt.dumbR && prog[key].dumbL>=tgt.dumbL && (tgt.pushups+tgt.dumbR+tgt.dumbL)>0);
-    const doneDiv = document.createElement('div'); doneDiv.className='done'; doneDiv.innerHTML = doneAll? '✓ Completado' : '';
+    const doneDiv = document.createElement('div'); doneDiv.className='done'; doneDiv.innerHTML = doneAll? '✓ Completed' : '';
     head.appendChild(doneDiv); el.appendChild(head);
 
     el.appendChild(counterRow('Push‑ups', day.iso, key, 'pushups', tgt.pushups));
-    el.appendChild(counterRow(`Mancuerna (Der)`, day.iso, key, 'dumbR', tgt.dumbR));
-    el.appendChild(counterRow(`Mancuerna (Izq)`, day.iso, key, 'dumbL', tgt.dumbL));
+    el.appendChild(counterRow(`Dumbbell (Right)`, day.iso, key, 'dumbR', tgt.dumbR));
+    el.appendChild(counterRow(`Dumbbell (Left)`, day.iso, key, 'dumbL', tgt.dumbL));
     return el;
   }
 
@@ -541,7 +541,7 @@
     const row = document.createElement('div'); row.className='exercise';
     const lb = document.createElement('div'); lb.className='label'; lb.textContent = label + (target? '' : '');
     if(target===0){ lb.classList.add('strike'); }
-    const tgt = document.createElement('div'); tgt.className='pill'; tgt.textContent = target>0? ('Meta: '+target) : '— sin objetivo —';
+    const tgt = document.createElement('div'); tgt.className='pill'; tgt.textContent = target>0? ('Target: '+target) : '— no target —';
     const ctr = document.createElement('div'); ctr.className='counter';
     const less = document.createElement('button'); less.textContent='－';
     const span = document.createElement('span'); span.className='count';
@@ -562,7 +562,7 @@
       const rect = ev.target.getBoundingClientRect();
       celebrate(rect.left+rect.width/2, rect.top+rect.height/2, false);
       // Big celebration if reached target (and >0)
-      if(target>0 && p[slot][field]===target){ celebrate(rect.left+rect.width/2, rect.top+rect.height/2, true); toast('¡Objetivo alcanzado!'); }
+      if(target>0 && p[slot][field]===target){ celebrate(rect.left+rect.width/2, rect.top+rect.height/2, true); toast('Target reached!'); }
       render(); // update rings / completed marks
     };
 
@@ -597,7 +597,7 @@
     const t3 = document.getElementById('cfg-t3').value || DEFAULT.times[2];
 
     state.cfg = { startDate:s, totalDays:days, skipWeekday:skip, rotation: rot? rot.split(',').map(x=>x.trim()).filter(Boolean): DEFAULT.rotation, pushupMiddayProgressive: midPU, times:[t1,t2,t3] };
-    save(); modal.close(); render(); toast('Configuración guardada');
+    save(); modal.close(); render(); toast('Settings saved');
   }
 
   // Download your data as a JSON file
@@ -615,8 +615,8 @@
     inp.onchange = () => {
       const f = inp.files[0]; if(!f) return;
       const rd = new FileReader(); rd.onload = () => {
-        try{ const obj = JSON.parse(rd.result); if(obj && obj.cfg && obj.progress){ obj.achievements = obj.achievements || { days:{}, weeks:{}, challenge12:false }; obj.gamify = obj.gamify || { xpTotal: 0, xpToday: 0, lastXPDay: '', streak: 0, streakBest: 0, badges: {} }; state = obj; save(); render(); toast('Importado ✓'); } }
-        catch(e){ alert('Archivo no válido'); }
+        try{ const obj = JSON.parse(rd.result); if(obj && obj.cfg && obj.progress){ obj.achievements = obj.achievements || { days:{}, weeks:{}, challenge12:false }; obj.gamify = obj.gamify || { xpTotal: 0, xpToday: 0, lastXPDay: '', streak: 0, streakBest: 0, badges: {} }; state = obj; save(); render(); toast('Imported ✓'); } }
+        catch(e){ alert('Invalid file'); }
       }; rd.readAsText(f);
     }; inp.click();
   }
@@ -641,14 +641,14 @@
       ['🥉 Day Master', !!bd.dayMaster || daysCount>0],
       ['🥈 Week Finisher', !!bd.weekFinisher || weeksCount>0],
       ['🥇 12-Day Challenger', !!bd.challenge12 || a.challenge12],
-      ['💪 50 Push-ups', !!bd.pu50, `${pu} totales`],
-      ['🏋️ 100 Lifts', !!bd.lifts100, `${lifts} totales`],
-      ['🔥 Streak 7', !!bd.streak7, `${g.streak||0} actual`],
-      ['🔥 Streak 12', !!bd.streak12, `${g.streak||0} actual`],
+      ['💪 50 Push-ups', !!bd.pu50, `${pu} total`],
+      ['🏋️ 100 Lifts', !!bd.lifts100, `${lifts} total`],
+      ['🔥 Streak 7', !!bd.streak7, `${g.streak||0} current`],
+      ['🔥 Streak 12', !!bd.streak12, `${g.streak||0} current`],
     ];
     box.innerHTML = `
-      <div class="pill">XP hoy: <strong>${(g.xpToday||0)}</strong> · XP total: <strong>${(g.xpTotal||0)}</strong></div>
-      <div class="pill">Racha: <strong>${(g.streak||0)}</strong> · Mejor: <strong>${(g.streakBest||0)}</strong></div>
+      <div class="pill">XP today: <strong>${(g.xpToday||0)}</strong> · Total XP: <strong>${(g.xpTotal||0)}</strong></div>
+      <div class="pill">Streak: <strong>${(g.streak||0)}</strong> · Best: <strong>${(g.streakBest||0)}</strong></div>
       ${items.map(([label, ok, sub]) => `
         <div class="pill" style="display:flex; justify-content:space-between; gap:8px; ${ok?'background:#123a2a;border-color:#1f6b4e;color:#a7ffcf':''}">
           <span>${label}</span>
@@ -659,7 +659,7 @@
     document.getElementById('achv-list').showModal();
   }
   document.getElementById('btn-achv').onclick = openAchievementsList;
-  document.getElementById('btn-reset').onclick=()=>{ if(confirm('¿Borrar configuración y progreso?')){ localStorage.removeItem(STORAGE_KEY); state = { version:1, cfg: DEFAULT, progress:{} }; render(); } };
+  document.getElementById('btn-reset').onclick=()=>{ if(confirm('Delete settings and progress?')){ localStorage.removeItem(STORAGE_KEY); state = { version:1, cfg: DEFAULT, progress:{} }; render(); } };
 })();
 </script>
 </body>
