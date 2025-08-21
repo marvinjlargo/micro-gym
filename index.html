@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<!--
+  Office Micro‑Gym (KISS edition)
+  How to edit (simple):
+  - Colors/look: change CSS in :root below.
+  - Defaults: edit the DEFAULT object in the script (start date, days, times, rotation).
+  - Use the "Configurar" button for most changes (no coding needed).
+  - Your data is saved locally in this browser (localStorage). Use Export/Import to move it.
+-->
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Office Micro‑Gym — 12‑Day Sprint</title>
+  <!-- Styles: change look and colors here -->
+  <style>
+    :root{
+      /* Theme colors — change these to adjust the color scheme */
+      --bg: #0b1020;
+      --card: #111936;
+      --muted: #8da0ff;
+      --accent: #56f0c4;
+      --accent-2: #8ef;
+      --text: #eef1ff;
+      --ok: #67ff9b;
+      --warn:#ffd166;
+      --danger:#ff6b6b;
+      --ring:#19224b;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --radius: 18px;
+    }
+    html,body{height:100%;}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(60vw 60vw at 10% -10%, #14214a 0%, rgba(20,33,74,0) 60%),
+        radial-gradient(70vw 70vw at 100% 0%, #0e1b37 0%, rgba(14,27,55,0) 60%),
+        linear-gradient(180deg, #070b17, #0b1020);
+    }
+    header{
+      position:sticky; top:0; z-index:10; backdrop-filter: blur(8px);
+      background: linear-gradient(180deg, rgba(7,11,23,.85), rgba(7,11,23,.55));
+      border-bottom: 1px solid #1c254f; box-shadow: var(--shadow);
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:14px 18px;}
+    .title{display:flex; align-items:center; gap:12px}
+    .badge{font-size:12px; letter-spacing:.6px; padding:4px 10px; border-radius:999px; background:#1a2454; color:var(--muted); border:1px solid #2b3a7c}
+    .spacer{flex:1}
+    button, .btn{cursor:pointer; border-radius:12px; border:1px solid #2a355f; background:#121a3a; color:var(--text); padding:10px 14px; box-shadow:var(--shadow)}
+    button:hover, .btn:hover{border-color:#3b4a86; background:#0f1631}
+    .grid{display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px; padding:18px}
+    .card{background:var(--card); border:1px solid #1c254f; border-radius:var(--radius); box-shadow: var(--shadow); position:relative; overflow:hidden}
+    .card-head{display:flex; align-items:center; gap:12px; padding:16px; border-bottom:1px solid #1b2550}
+    .day-ring{width:52px;height:52px; background:
+      conic-gradient(var(--accent) calc(var(--pct)*1%), #29346e 0);
+      border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:12px; color:#bfe}
+    .day-ring::after{content:""; width:40px;height:40px; background:var(--ring); border-radius:50%}
+    .day-info{display:grid}
+    .day-info small{color:#a7b5ff}
+    .slot{padding:12px 14px; display:grid; gap:8px; border-top:1px dashed #24306b}
+    .slot-head{display:flex; align-items:center; justify-content:space-between}
+    .slot-head .when{font-weight:700; color:#cfe3ff}
+    .slot-head .done{font-size:12px; color:#a5ffcf}
+    .exercise{display:grid; grid-template-columns: 1.4fr .8fr auto; gap:10px; align-items:center}
+    .label{opacity:.9}
+    .counter{display:flex; align-items:center; gap:8px; justify-content:flex-end}
+    .count{min-width:28px; text-align:center; font-weight:700; background:#0e1533; padding:6px 10px; border-radius:10px; border:1px solid #27306a}
+    .mini{font-size:12px; opacity:.8}
+    .pill{font-size:11px; padding:4px 8px; border-radius:999px; background:#0e1634; border:1px solid #283373; color:#9ad8ff}
+    .footer{display:flex; gap:10px; padding:14px 18px; border-top:1px solid #1b2550; flex-wrap:wrap}
+    .hint{color:#bcd1ff; opacity:.9}
+    .strike{ text-decoration: line-through; opacity:.55 }
+
+    /* Confetti */
+    .boom{position:fixed; inset:0; pointer-events:none;}
+    .piece{position:absolute; width:8px; height:8px; border-radius:2px; opacity:0; animation: pop 900ms ease-out forwards}
+    @keyframes pop{ 0%{ transform: translate(var(--x), var(--y)) scale(.6) rotate(0deg); opacity:1 }
+                    80%{ opacity:1 }
+                    100%{ transform: translate(calc(var(--x) * 4), calc(var(--y) * 4)) scale(1.25) rotate(720deg); opacity:0 } }
+
+    /* Modal */
+    dialog{ border:none; border-radius:16px; padding:0; background:#0e1634; color:var(--text); box-shadow: var(--shadow); width:min(760px, 92vw)}
+    dialog::backdrop{ background:rgba(0,0,0,.5) }
+    .modal-head{display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid #1b2550}
+    .modal-body{padding:16px 18px; display:grid; gap:14px}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:12px}
+    input[type="text"], input[type="date"], input[type="number"], select{ width:100%; padding:10px; border-radius:12px; border:1px solid #2a355f; background:#0a1231; color:var(--text) }
+    .switch{ display:flex; align-items:center; gap:10px}
+
+    .legend{display:flex; gap:10px; flex-wrap:wrap}
+    .legend .pill{background:#12204a}
+
+    .toast{position:fixed; right:16px; bottom:16px; background:#132157; border:1px solid #2a3b84; padding:10px 14px; border-radius:12px; box-shadow:var(--shadow); opacity:0; transform: translateY(10px); transition: all .25s}
+    .toast.show{opacity:1; transform: translateY(0)}
+  </style>
+</head>
+<body>
+  <!-- Top bar: title and quick action buttons -->
+  <header>
+    <div class="wrap">
+      <div class="title">
+        <span class="badge">SELF‑CONTAINED • OFFLINE • LOCAL MEMORY</span>
+        <h1 style="margin:0; font-size:20px">Office Micro‑Gym — 12‑Day Sprint</h1>
+        <div class="spacer"></div>
+        <button id="btn-settings" title="Editar configuración">⚙️ Configurar</button>
+        <button id="btn-export" title="Exportar progreso">⤴️ Exportar</button>
+        <button id="btn-import" title="Importar progreso">⤵️ Importar</button>
+        <button id="btn-reset" title="Borrar todo">🗑️ Reset</button>
+        <button id="btn-achv" title="Ver logros">🏅 Logros</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- The script will render the day cards inside this grid -->
+  <main id="app" class="grid" aria-live="polite"></main>
+
+  <!-- Legend: just informational text, edit freely -->
+  <div class="wrap">
+    <div class="legend">
+      <span class="pill">8:30: 12 push‑ups + 12 por brazo</span>
+      <span class="pill">12:00: Mancuerna 1→12 por brazo; Push‑ups sin objetivo</span>
+      <span class="pill">16:00: Push‑ups 1→12 y Mancuerna 1→12 por brazo</span>
+      <span class="pill">Domingos omitidos automáticamente</span>
+      <span class="pill">Rotación de Mancuerna: Curl → Press → Row</span>
+    </div>
+    <p class="hint">Consejo: abre este archivo con doble clic, guárdalo en tu Escritorio. Todo queda guardado en tu navegador (localStorage). No necesita Internet.</p>
+  </div>
+
+  <!-- Confetti container (celebration) and toast (small popup message) -->
+  <div class="boom" id="boom"></div>
+  <div class="toast" id="toast"></div>
+
+  <!-- Settings modal: opened by the "Configurar" button -->
+  <dialog id="modal">
+    <div class="modal-head">
+      <strong>Configuración</strong>
+      <button onclick="modal.close()">✖</button>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <label>Fecha de inicio
+          <input id="cfg-start" type="date">
+        </label>
+        <label>Días hábiles del sprint
+          <input id="cfg-days" type="number" min="1" max="60" />
+        </label>
+      </div>
+      <div class="row">
+        <label>Omitir día de la semana
+          <select id="cfg-skip">
+            <option value="-1">No omitir</option>
+            <option value="0" selected>Domingo</option>
+            <option value="6">Sábado</option>
+          </select>
+        </label>
+        <label>Rotación Mancuerna
+          <input id="cfg-rotation" type="text" placeholder="Separadas por coma" />
+        </label>
+      </div>
+      <div class="switch">
+        <input id="cfg-midPU" type="checkbox" />
+        <label for="cfg-midPU">Push‑ups con progresión al mediodía (1→12)</label>
+      </div>
+      <div class="row">
+        <label>Horario mañana
+          <input id="cfg-t1" type="text" placeholder="8:30 AM" />
+        </label>
+        <label>Horario mediodía
+          <input id="cfg-t2" type="text" placeholder="12:00 PM" />
+        </label>
+      </div>
+      <div class="row">
+        <label>Horario tarde
+          <input id="cfg-t3" type="text" placeholder="4:00 PM" />
+        </label>
+        <div></div>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end; padding-top:8px">
+        <button id="cfg-save">Guardar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Achievements: list modal (read-only) -->
+  <dialog id="achv-list">
+    <div class="modal-head">
+      <strong>Logros</strong>
+      <button onclick="document.getElementById('achv-list').close()">✖</button>
+    </div>
+    <div class="modal-body" id="achv-body" style="display:grid; gap:10px"></div>
+  </dialog>
+
+  <!-- Achievements: final challenge modal -->
+  <dialog id="achv-modal">
+    <div class="modal-head">
+      <strong>🏆 ¡Reto completado!</strong>
+      <button onclick="document.getElementById('achv-modal').close()">✖</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0 0 8px 0">¡Reto de 12 días completado! Eres una máquina.</p>
+      <button class="btn" onclick="document.getElementById('achv-modal').close()">Cerrar</button>
+    </div>
+  </dialog>
+
+<script>
+// JavaScript: controls the schedule, progress, and UI
+(() => {
+  // Where progress is saved (browser localStorage). Safe to keep as is.
+  const STORAGE_KEY = 'office_micro_gym_v2';
+  const todayISO = d2iso(new Date());
+
+  // Defaults: change these to fit your plan. You can also use the Configurar button.
+  const DEFAULT = {
+    startDate: '2025-08-20',
+    totalDays: 12, // How many active days to include
+    skipWeekday: 0, // 0=Sunday, 6=Saturday, -1 = do not skip any
+    times: ['8:30 AM','12:00 PM','4:00 PM'], // Morning, Midday, Evening labels
+    rotation: ['Biceps Curl','Shoulder Press','Bent-over Row'], // Dumbbell exercise rotation
+    pushupMiddayProgressive: false, // Optional toggle; you can ignore this unless you change logic
+  };
+
+  // App state = configuration + your progress
+  let state = load() || { version:1, cfg: DEFAULT, progress:{} };
+
+  // Make sure all default fields exist (keeps your saved values)
+  state.cfg = Object.assign({}, DEFAULT, state.cfg||{});
+  // Ensure achievements container exists (backward compatible)
+  state.achievements = state.achievements || { days:{}, weeks:{}, challenge12:false };
+  // Gamification state (XP, streak, badges) — backward compatible
+  state.gamify = state.gamify || { xpTotal: 0, xpToday: 0, lastXPDay: '', streak: 0, streakBest: 0, badges: {} };
+  // Achievements container (backward compatible if you had old data)
+  state.achievements = state.achievements || { days:{}, weeks:{}, challenge12:false };
+
+  // Build the list of days to show, skipping the chosen weekday
+  function buildDays(){
+    const days = [];
+    const d0 = parseISO(state.cfg.startDate);
+    let d = new Date(d0);
+    let included = 0;
+    let step = 0; // progressive index 0..11
+    while(included < state.cfg.totalDays){
+      const skip = Number(state.cfg.skipWeekday);
+      // Skip this weekday if configured
+      if(skip >= 0 && d.getDay()===skip){ // skip chosen weekday
+        d.setDate(d.getDate()+1);
+        continue;
+      }
+      const iso = d2iso(d);
+      // Progressive target value grows from 1 to 12
+      const midProg = Math.min(12, step+1);
+      const puMid = state.cfg.pushupMiddayProgressive ? midProg : 0;
+      const rot = state.cfg.rotation;
+      // Pick exercise name from rotation list
+      const exName = rot && rot.length? rot[included % rot.length] : 'Dumbbell';
+      const plan = {
+        iso,
+        dow: d.getDay(),
+        title: exName,
+        targets: {
+          morning: { pushups:12, dumbR:12, dumbL:12 },
+          midday:  { pushups: 0, dumbR: midProg, dumbL: midProg },
+          evening: { pushups: midProg, dumbR: 12, dumbL: 12 },
+        }
+      };
+      days.push(plan);
+      included++; step++;
+      d.setDate(d.getDate()+1);
+    }
+    return days;
+  }
+
+  // Date helpers: store as YYYY-MM-DD, show a friendly date
+  function parseISO(s){ const [Y,M,D] = s.split('-').map(Number); return new Date(Y, M-1, D); }
+  function d2iso(d){ return d.toISOString().slice(0,10); }
+  function dateNice(iso){ const d = parseISO(iso); return d.toLocaleDateString(undefined,{ weekday:'short', month:'short', day:'numeric' }); }
+
+  // Load/save your data to the browser (no server)
+  function load(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||''); }catch(e){ return null } }
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+  // Keep a value between min and max
+  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+  // Get or create the progress object for a given day
+  function getProgressFor(iso){ return state.progress[iso] || (state.progress[iso] = { morning:{pushups:0,dumbR:0,dumbL:0}, midday:{pushups:0,dumbR:0,dumbL:0}, evening:{pushups:0,dumbR:0,dumbL:0} }); }
+
+  // Sum helpers: used to compute the completion ring percentage
+  function sumTargets(t){ return (t.morning.pushups+t.morning.dumbR+t.morning.dumbL + t.midday.pushups+t.midday.dumbR+t.midday.dumbL + t.evening.pushups+t.evening.dumbR+t.evening.dumbL); }
+  function sumProgress(p){ return (p.morning.pushups+p.morning.dumbR+p.morning.dumbL + p.midday.pushups+p.midday.dumbR+p.midday.dumbL + p.evening.pushups+p.evening.dumbR+p.evening.dumbL); }
+
+  // Totals across all days (for badge grants and Achievements list)
+  function totalsAll(){
+    const ds = buildDays();
+    let pu=0, lifts=0;
+    ds.forEach(d=>{
+      const pp = getProgressFor(d.iso);
+      ['morning','midday','evening'].forEach(s=>{
+        pu += pp[s].pushups;
+        lifts += pp[s].dumbR + pp[s].dumbL;
+      });
+    });
+    return {pu, lifts};
+  }
+
+  // XP helper — +n XP, resets daily counter if day changed
+  function addXP(n){
+    const g = (state.gamify ||= { xpTotal:0, xpToday:0, lastXPDay:'' });
+    if (g.lastXPDay !== todayISO){ g.xpToday = 0; g.lastXPDay = todayISO; }
+    g.xpToday += n; g.xpTotal += n; save();
+  }
+
+  // Achievement helpers
+  function isDay100(day, pClamped){
+    const total = (day.targets.morning.pushups + day.targets.morning.dumbR + day.targets.morning.dumbL
+      + day.targets.midday.pushups + day.targets.midday.dumbR + day.targets.midday.dumbL
+      + day.targets.evening.pushups + day.targets.evening.dumbR + day.targets.evening.dumbL);
+    const done = (pClamped.morning.pushups + pClamped.morning.dumbR + pClamped.morning.dumbL
+      + pClamped.midday.pushups + pClamped.midday.dumbR + pClamped.midday.dumbL
+      + pClamped.evening.pushups + pClamped.evening.dumbR + pClamped.evening.dumbL);
+    return total > 0 && done >= total;
+  }
+  function isFriday(day){ return parseISO(day.iso).getDay() === 5; }
+  function megaCelebrate(){
+    const cx = window.innerWidth/2, cy = window.innerHeight/2;
+    celebrate(cx, cy, true);
+    setTimeout(()=>celebrate(cx-120, cy-60, true), 120);
+    setTimeout(()=>celebrate(cx+120, cy+40, true), 220);
+  }
+
+  // Confetti animation for small wins and targets reached
+  function celebrate(x,y,big=false){
+    const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced){ toast('¡Objetivo alcanzado!'); return; }
+    const boom = document.getElementById('boom');
+    const colors = ['#56f0c4','#67ff9b','#8ef','#ffd166','#ff6b6b','#c084fc'];
+    for(let i=0;i<(big?80:28);i++){
+      const el = document.createElement('div');
+      el.className='piece';
+      const a = (Math.random()*Math.PI*2);
+      const r = 20+Math.random()*60;
+      el.style.setProperty('--x', Math.cos(a)*r+'px');
+      el.style.setProperty('--y', Math.sin(a)*r+'px');
+      el.style.left = x+'px'; el.style.top = y+'px';
+      el.style.background = colors[i%colors.length];
+      el.style.animationDelay = (Math.random()*80)+'ms';
+      boom.appendChild(el);
+      setTimeout(()=>el.remove(), 1000);
+    }
+  }
+
+  // Quick popup message in the bottom-right corner
+  function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000); }
+
+  // Draw all day cards
+  function render(){
+    const root = document.getElementById('app');
+    root.innerHTML = '';
+    const days = buildDays();
+    // Ensure XP badge exists in header
+    (function ensureXPBadge(){
+      const t = document.querySelector('.title');
+      if (!t) return;
+      if (t.querySelector('#xp-pill')) return;
+      const g = state.gamify || { xpToday:0, xpTotal:0, lastXPDay:todayISO };
+      const goal = 100;
+      const pill = document.createElement('span');
+      pill.id = 'xp-pill';
+      pill.className = 'badge';
+      pill.title = 'XP diario / total';
+      pill.textContent = `XP: ${g.xpToday}/${goal} · Total: ${g.xpTotal}`;
+      t.appendChild(pill);
+    })();
+    days.forEach(day => {
+      const p = getProgressFor(day.iso);
+      // Compute clamped sums for ring (do not over-count beyond targets)
+      const tSum = sumTargets(day.targets);
+      const pClamped = {
+        morning:{ pushups: clamp(p.morning.pushups,0,day.targets.morning.pushups), dumbR: clamp(p.morning.dumbR,0,day.targets.morning.dumbR), dumbL: clamp(p.morning.dumbL,0,day.targets.morning.dumbL) },
+        midday:{  pushups: clamp(p.midday.pushups,0,day.targets.midday.pushups),   dumbR: clamp(p.midday.dumbR,0,day.targets.midday.dumbR),   dumbL: clamp(p.midday.dumbL,0,day.targets.midday.dumbL) },
+        evening:{ pushups: clamp(p.evening.pushups,0,day.targets.evening.pushups), dumbR: clamp(p.evening.dumbR,0,day.targets.evening.dumbR), dumbL: clamp(p.evening.dumbL,0,day.targets.evening.dumbL) },
+      };
+      const doneSum = sumProgress(pClamped);
+      const pct = Math.round((doneSum / (tSum||1)) * 100);
+
+      const card = document.createElement('section');
+      card.className='card';
+
+      const head = document.createElement('div');
+      head.className='card-head';
+      const ring = document.createElement('div');
+      ring.className='day-ring'; ring.style.setProperty('--pct', pct);
+      ring.innerHTML = `<span style="position:absolute; font-size:11px">${pct}%</span>`;
+      const info = document.createElement('div');
+      info.className='day-info';
+      info.innerHTML = `<div style="font-weight:700">${dateNice(day.iso)} ${day.iso===todayISO?'<span class="pill" style="margin-left:6px">HOY</span>':''}</div>
+                        <small>Mancuerna: ${day.title}</small>`;
+      head.appendChild(ring); head.appendChild(info);
+      card.appendChild(head);
+
+      // ---- ACHIEVEMENTS TRIGGERS ----
+      const wasDayAwarded = !!(state.achievements.days && state.achievements.days[day.iso]);
+      const nowIs100 = isDay100(day, pClamped);
+      if(nowIs100){
+        // Tiny badge to show 100%
+        info.innerHTML += ' <span class="pill" style="margin-left:6px;background:#123a2a;border-color:#1f6b4e;color:#a7ffcf">100%</span>';
+      }
+      if(nowIs100 && !wasDayAwarded){
+        if(!state.achievements.days) state.achievements.days = {};
+        state.achievements.days[day.iso] = true;
+        save();
+        toast('Day Master: ¡100% completado!');
+        const rectBody = document.body.getBoundingClientRect();
+        celebrate(rectBody.width/2, 120, true);
+
+        if(isFriday(day)){
+          if(!state.achievements.weeks) state.achievements.weeks = {};
+          if(!state.achievements.weeks[day.iso]){
+            state.achievements.weeks[day.iso] = true;
+            save();
+            toast('Week Finisher: ¡Viernes completado al 100%!');
+            megaCelebrate();
+          }
+        }
+      }
+
+      card.appendChild(renderSlot('morning', state.cfg.times[0]||'8:30 AM', day, p));
+      card.appendChild(renderSlot('midday',  state.cfg.times[1]||'12:00 PM', day, p));
+      card.appendChild(renderSlot('evening', state.cfg.times[2]||'4:00 PM', day, p));
+
+      const foot = document.createElement('div'); foot.className='footer';
+      const resetBtn = document.createElement('button'); resetBtn.textContent='Reiniciar día';
+      resetBtn.onclick=()=>{ state.progress[day.iso] = { morning:{pushups:0,dumbR:0,dumbL:0}, midday:{pushups:0,dumbR:0,dumbL:0}, evening:{pushups:0,dumbR:0,dumbL:0} }; save(); render(); toast('Progreso del día reiniciado'); };
+      foot.appendChild(resetBtn);
+      const hint = document.createElement('div'); hint.className='hint';
+      hint.textContent = 'Completa objetivos para desbloquear confetti ✨';
+      foot.appendChild(hint);
+      card.appendChild(foot);
+
+      root.appendChild(card);
+    });
+
+    // Update XP pill text
+    const xpPill = document.getElementById('xp-pill');
+    if (xpPill){
+      const g = state.gamify || { xpToday:0, xpTotal:0, lastXPDay:todayISO };
+      const goal = 100;
+      xpPill.textContent = `XP: ${g.xpToday}/${goal} · Total: ${g.xpTotal}`;
+    }
+
+    // After rendering all days, check if full challenge is complete
+    const allComplete = days.every(d=>{
+      const p = getProgressFor(d.iso);
+      const pC = {
+        morning:{ pushups: clamp(p.morning.pushups,0,d.targets.morning.pushups), dumbR: clamp(p.morning.dumbR,0,d.targets.morning.dumbR), dumbL: clamp(p.morning.dumbL,0,d.targets.morning.dumbL) },
+        midday:{  pushups: clamp(p.midday.pushups,0,d.targets.midday.pushups),   dumbR: clamp(p.midday.dumbR,0,d.targets.midday.dumbR),   dumbL: clamp(p.midday.dumbL,0,d.targets.midday.dumbL) },
+        evening:{ pushups: clamp(p.evening.pushups,0,d.targets.evening.pushups), dumbR: clamp(p.evening.dumbR,0,d.targets.evening.dumbR), dumbL: clamp(p.evening.dumbL,0,d.targets.evening.dumbL) },
+      };
+      return isDay100(d, pC);
+    });
+    if(allComplete && !state.achievements.challenge12){
+      state.achievements.challenge12 = true;
+      save();
+      megaCelebrate();
+      const achvModal = document.getElementById('achv-modal');
+      if(achvModal && achvModal.showModal){ achvModal.showModal(); }
+    }
+
+    // Streak calculation and header badge
+    function isActiveDay(p){
+      return ['morning','midday','evening'].some(s => {
+        const x = p[s]; return (x.pushups + x.dumbR + x.dumbL) > 0;
+      });
+    }
+    function computeStreak(ds){
+      let streak = 0;
+      for (let i = ds.length - 1; i >= 0; i--){
+        const pp = getProgressFor(ds[i].iso);
+        if (!isActiveDay(pp)) break;
+        streak++;
+      }
+      return streak;
+    }
+    const st = computeStreak(days);
+    state.gamify.streak = st;
+    state.gamify.streakBest = Math.max(state.gamify.streakBest || 0, st);
+    save();
+    (function ensureStreakBadge(){
+      const t = document.querySelector('.title'); if(!t) return;
+      let b = document.getElementById('streak-badge');
+      if(!b){ b = document.createElement('span'); b.id='streak-badge'; b.className='badge'; t.appendChild(b); }
+      b.textContent = `🔥 Streak: ${state.gamify.streak} (mejor: ${state.gamify.streakBest})`;
+    })();
+
+    // Grant badges based on achievements and totals
+    (function grantBadges(){
+      const g = state.gamify || (state.gamify = {badges:{}});
+      const b = g.badges || (g.badges = {});
+      const a = state.achievements || {days:{}, weeks:{}, challenge12:false};
+      const daysCount = Object.keys(a.days||{}).length;
+      const weeksCount = Object.keys(a.weeks||{}).length;
+      const { pu, lifts } = totalsAll();
+
+      function give(key, msg){
+        if(!b[key]){ b[key] = true; toast(msg); save(); }
+      }
+
+      if(daysCount >= 1) give('dayMaster', '🥉 Badge: Day Master');
+      if(weeksCount >= 1) give('weekFinisher', '🥈 Badge: Week Finisher');
+      if(a.challenge12) give('challenge12', '🥇 Badge: 12-Day Challenger');
+
+      if(pu >= 50) give('pu50', '💪 Badge: 50 Push-ups');
+      if(lifts >= 100) give('lifts100', '🏋️ Badge: 100 Lifts');
+
+      if((g.streak||0) >= 7) give('streak7', '🔥 Badge: Streak 7');
+      if((g.streak||0) >= 12) give('streak12', '🔥 Badge: Streak 12');
+    })();
+  }
+
+  // Build one time slot (morning, midday, evening)
+  function renderSlot(key, whenLabel, day, prog){
+    const tgt = day.targets[key];
+    const el = document.createElement('div'); el.className='slot';
+    const head = document.createElement('div'); head.className='slot-head';
+    head.innerHTML = `<div class="when">${whenLabel}</div>`;
+    const doneAll = (prog[key].pushups>=tgt.pushups && prog[key].dumbR>=tgt.dumbR && prog[key].dumbL>=tgt.dumbL && (tgt.pushups+tgt.dumbR+tgt.dumbL)>0);
+    const doneDiv = document.createElement('div'); doneDiv.className='done'; doneDiv.innerHTML = doneAll? '✓ Completado' : '';
+    head.appendChild(doneDiv); el.appendChild(head);
+
+    el.appendChild(counterRow('Push‑ups', day.iso, key, 'pushups', tgt.pushups));
+    el.appendChild(counterRow(`Mancuerna (Der)`, day.iso, key, 'dumbR', tgt.dumbR));
+    el.appendChild(counterRow(`Mancuerna (Izq)`, day.iso, key, 'dumbL', tgt.dumbL));
+    return el;
+  }
+
+  // One exercise row with minus/plus buttons
+  function counterRow(label, iso, slot, field, target){
+    const row = document.createElement('div'); row.className='exercise';
+    const lb = document.createElement('div'); lb.className='label'; lb.textContent = label + (target? '' : '');
+    if(target===0){ lb.classList.add('strike'); }
+    const tgt = document.createElement('div'); tgt.className='pill'; tgt.textContent = target>0? ('Meta: '+target) : '— sin objetivo —';
+    const ctr = document.createElement('div'); ctr.className='counter';
+    const less = document.createElement('button'); less.textContent='－';
+    const span = document.createElement('span'); span.className='count';
+    const more = document.createElement('button'); more.textContent='＋';
+    const p = getProgressFor(iso);
+    span.textContent = p[slot][field];
+
+    // Decrease count (not below 0)
+    less.onclick = (ev)=>{
+      p[slot][field] = clamp(p[slot][field]-1, 0, 999);
+      save(); span.textContent = p[slot][field];
+    };
+    // Increase count and celebrate when you hit the target
+    more.onclick = (ev)=>{
+      p[slot][field] = clamp(p[slot][field]+1, 0, 999);
+      save(); span.textContent = p[slot][field];
+      addXP(1);
+      const rect = ev.target.getBoundingClientRect();
+      celebrate(rect.left+rect.width/2, rect.top+rect.height/2, false);
+      // Big celebration if reached target (and >0)
+      if(target>0 && p[slot][field]===target){ celebrate(rect.left+rect.width/2, rect.top+rect.height/2, true); toast('¡Objetivo alcanzado!'); }
+      render(); // update rings / completed marks
+    };
+
+    ctr.appendChild(less); ctr.appendChild(span); ctr.appendChild(more);
+    row.appendChild(lb); row.appendChild(tgt); row.appendChild(ctr);
+    return row;
+  }
+
+  // Open the settings modal and fill it with current values
+  function openSettings(){
+    const cfg = state.cfg;
+    document.getElementById('cfg-start').value = cfg.startDate;
+    document.getElementById('cfg-days').value = cfg.totalDays;
+    document.getElementById('cfg-skip').value = String(cfg.skipWeekday);
+    document.getElementById('cfg-rotation').value = cfg.rotation.join(', ');
+    document.getElementById('cfg-midPU').checked = !!cfg.pushupMiddayProgressive;
+    document.getElementById('cfg-t1').value = cfg.times[0]||'';
+    document.getElementById('cfg-t2').value = cfg.times[1]||'';
+    document.getElementById('cfg-t3').value = cfg.times[2]||'';
+    modal.showModal();
+  }
+
+  // Read values from the modal and save configuration
+  function saveSettings(){
+    const s = document.getElementById('cfg-start').value || DEFAULT.startDate;
+    const days = Number(document.getElementById('cfg-days').value||DEFAULT.totalDays);
+    const skip = Number(document.getElementById('cfg-skip').value||0);
+    const rot = document.getElementById('cfg-rotation').value.trim();
+    const midPU = document.getElementById('cfg-midPU').checked;
+    const t1 = document.getElementById('cfg-t1').value || DEFAULT.times[0];
+    const t2 = document.getElementById('cfg-t2').value || DEFAULT.times[1];
+    const t3 = document.getElementById('cfg-t3').value || DEFAULT.times[2];
+
+    state.cfg = { startDate:s, totalDays:days, skipWeekday:skip, rotation: rot? rot.split(',').map(x=>x.trim()).filter(Boolean): DEFAULT.rotation, pushupMiddayProgressive: midPU, times:[t1,t2,t3] };
+    save(); modal.close(); render(); toast('Configuración guardada');
+  }
+
+  // Download your data as a JSON file
+  function exportData(){
+    const data = JSON.stringify(state, null, 2);
+    const blob = new Blob([data], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'office-micro-gym-progress.json'; a.click();
+    URL.revokeObjectURL(url);
+  }
+  // Load your data from a JSON file you previously exported
+  function importData(){
+    const inp = document.createElement('input'); inp.type='file'; inp.accept='application/json';
+    inp.onchange = () => {
+      const f = inp.files[0]; if(!f) return;
+      const rd = new FileReader(); rd.onload = () => {
+        try{ const obj = JSON.parse(rd.result); if(obj && obj.cfg && obj.progress){ obj.achievements = obj.achievements || { days:{}, weeks:{}, challenge12:false }; obj.gamify = obj.gamify || { xpTotal: 0, xpToday: 0, lastXPDay: '', streak: 0, streakBest: 0, badges: {} }; state = obj; save(); render(); toast('Importado ✓'); } }
+        catch(e){ alert('Archivo no válido'); }
+      }; rd.readAsText(f);
+    }; inp.click();
+  }
+
+  // Initial render (draw everything)
+  render();
+
+  // Connect top buttons to actions
+  document.getElementById('btn-settings').onclick=openSettings;
+  document.getElementById('cfg-save').onclick=saveSettings;
+  document.getElementById('btn-export').onclick=exportData;
+  document.getElementById('btn-import').onclick=importData;
+  function openAchievementsList(){
+    const box = document.getElementById('achv-body');
+    const a = state.achievements || {days:{}, weeks:{}, challenge12:false};
+    const daysCount = Object.keys(a.days||{}).length;
+    const weeksCount = Object.keys(a.weeks||{}).length;
+    const g = state.gamify || { xpToday:0, xpTotal:0, streak:0, streakBest:0, badges:{} };
+    const bd = g.badges || {};
+    const {pu, lifts} = totalsAll();
+    const items = [
+      ['🥉 Day Master', !!bd.dayMaster || daysCount>0],
+      ['🥈 Week Finisher', !!bd.weekFinisher || weeksCount>0],
+      ['🥇 12-Day Challenger', !!bd.challenge12 || a.challenge12],
+      ['💪 50 Push-ups', !!bd.pu50, `${pu} totales`],
+      ['🏋️ 100 Lifts', !!bd.lifts100, `${lifts} totales`],
+      ['🔥 Streak 7', !!bd.streak7, `${g.streak||0} actual`],
+      ['🔥 Streak 12', !!bd.streak12, `${g.streak||0} actual`],
+    ];
+    box.innerHTML = `
+      <div class="pill">XP hoy: <strong>${(g.xpToday||0)}</strong> · XP total: <strong>${(g.xpTotal||0)}</strong></div>
+      <div class="pill">Racha: <strong>${(g.streak||0)}</strong> · Mejor: <strong>${(g.streakBest||0)}</strong></div>
+      ${items.map(([label, ok, sub]) => `
+        <div class="pill" style="display:flex; justify-content:space-between; gap:8px; ${ok?'background:#123a2a;border-color:#1f6b4e;color:#a7ffcf':''}">
+          <span>${label}</span>
+          <span>${ok?'✓':'—'} ${sub?`<span class="mini">${sub}</span>`:''}</span>
+        </div>
+      `).join('')}
+    `;
+    document.getElementById('achv-list').showModal();
+  }
+  document.getElementById('btn-achv').onclick = openAchievementsList;
+  document.getElementById('btn-reset').onclick=()=>{ if(confirm('¿Borrar configuración y progreso?')){ localStorage.removeItem(STORAGE_KEY); state = { version:1, cfg: DEFAULT, progress:{} }; render(); } };
+})();
+</script>
+</body>
+</html>
