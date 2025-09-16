@@ -346,6 +346,7 @@
 
   function openSettings(){
     const cfg = state.cfg;
+    const modalEl = document.getElementById('modal');
     document.getElementById('cfg-start').value = cfg.startDate;
     document.getElementById('cfg-days').value = cfg.totalDays;
     document.getElementById('cfg-skip').value = String(cfg.skipWeekday);
@@ -357,10 +358,11 @@
     document.getElementById('cfg-basePU').value = Number(cfg.basePushups || 12);
     document.getElementById('cfg-baseLifts').value = Number(cfg.baseLifts || 12);
     document.getElementById('cfg-progMax').value = Number(cfg.progressiveMax || 12);
-    modal.showModal();
+    if (modalEl && modalEl.showModal){ modalEl.showModal(); }
   }
 
   function saveSettings(){
+    const modalEl = document.getElementById('modal');
     const s = document.getElementById('cfg-start').value || DEFAULT.startDate;
     const days = Number(document.getElementById('cfg-days').value||DEFAULT.totalDays);
     const skip = Number(document.getElementById('cfg-skip').value||0);
@@ -384,7 +386,7 @@
       baseLifts: baseLifts,
       progressiveMax: progMax,
     };
-    save(); modal.close(); render(); toast('Configuración guardada');
+    save(); if (modalEl && modalEl.close){ modalEl.close(); } render(); toast('Configuración guardada');
   }
 
   function exportData(){
