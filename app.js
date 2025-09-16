@@ -18,7 +18,8 @@
   let state = load() || { version:1, cfg: DEFAULT, progress:{} };
   state.cfg = Object.assign({}, DEFAULT, state.cfg || {});
   state.achievements = state.achievements || { days:{}, weeks:{}, challenge12:false };
-  state.gamify = state.gamify || { xpTotal: 0, xpToday: 0, lastXPDay: '', streak: 0, streakBest: 0, badges: {} };
+  state.gamify = state.gamify || { xpTotal: 0, xpToday: 0, lastXPDay: '', streak: 0, streakBest: 0, badges: {}, firstMoveDay: '' };
+  state.quests = state.quests || { daily:{}, weekly:{}, stickers:{} };
 
   // Helpers
   function parseISO(s){ const [Y,M,D] = s.split('-').map(Number); return new Date(Y, M-1, D); }
@@ -91,11 +92,17 @@
   }
 
   // XP
+  function calcXPMultiplier(){
+    const s = Number(state.gamify?.streak || 0);
+    const steps = Math.floor(s / 7);
+    return 1 + Math.min(steps * 0.1, 0.3); // up to 1.3x
+  }
   function addXP(n){
     const g = (state.gamify ||= { xpTotal:0, xpToday:0, lastXPDay:'' });
     const t = todayIso();
     if (g.lastXPDay !== t){ g.xpToday = 0; g.lastXPDay = t; }
-    g.xpToday += n; g.xpTotal += n; save();
+    const inc = Math.max(0, Math.round(n * calcXPMultiplier()));
+    g.xpToday += inc; g.xpTotal += inc; save();
   }
 
   // Achievements helpers
@@ -111,6 +118,44 @@
     return total > 0 && done >= total;
   }
   function isFriday(day){ return parseISO(day.iso).getDay() === 5; }
+
+  // Levels and Titles
+  function computeLevel(){ return Math.floor((state.gamify?.xpTotal || 0) / 100); }
+  function titleForLevel(lv){
+    if (lv >= 20) return 'Titan';
+    if (lv >= 15) return 'Gladiator';
+    if (lv >= 10) return 'Ironcore';
+    if (lv >= 5) return 'Sprinter';
+    return 'Rookie';
+  }
+
+  // Quests and Stickers
+  function getISOWeekKey(d){
+    const dt = new Date(d.getTime());
+    const dayNum = (dt.getDay() + 6) % 7; // Mon=0..Sun=6
+    dt.setDate(dt.getDate() - dayNum + 3);
+    const firstThursday = new Date(dt.getFullYear(),0,4);
+    const diff = dt - firstThursday;
+    const week = 1 + Math.round(diff / (7*24*60*60*1000));
+    return `${dt.getFullYear()}-W${String(week).padStart(2,'0')}`;
+  }
+  function ensureDailyQuest(iso){
+    const d = (state.quests.daily ||= {});
+    if (!d[iso]){
+      d[iso] = { key:`dq-${iso}`, label:'Completa todas las metas de mediodía', done:false, rewarded:false };
+    }
+    return d[iso];
+  }
+  function ensureWeeklyQuestForDate(dateIso){
+    const d = new Date(dateIso);
+    const wk = getISOWeekKey(d);
+    const w = (state.quests.weekly ||= {});
+    if (!w[wk]){
+      w[wk] = { key:`wq-${wk}`, label:'Consigue 3 días Perfectos esta semana', target:3, count:0, rewarded:false };
+    }
+    return w[wk];
+  }
+  function giveSticker(id){ const s=(state.quests.stickers ||= {}); if(!s[id]){ s[id]=true; save(); } }
 
   function celebrate(x,y,big=false){
     const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -171,9 +216,16 @@
       save(); span.textContent = p[slot][field];
     };
     more.onclick = (ev)=>{
+      const today = todayIso();
+      let bonus = 0;
+      if (iso === today && state.gamify.firstMoveDay !== today){
+        const pp = getProgressFor(iso);
+        const total = pp.morning.pushups+pp.morning.dumbR+pp.morning.dumbL+pp.midday.pushups+pp.midday.dumbR+pp.midday.dumbL+pp.evening.pushups+pp.evening.dumbR+pp.evening.dumbL;
+        if (total === 0){ bonus = 5; state.gamify.firstMoveDay = today; save(); }
+      }
       p[slot][field] = clamp(p[slot][field]+1, 0, 999);
       save(); span.textContent = p[slot][field];
-      addXP(1);
+      addXP(1 + bonus);
       const rect = ev.target.getBoundingClientRect();
       celebrate(rect.left+rect.width/2, rect.top+rect.height/2, false);
       if(target>0 && p[slot][field]===target){ celebrate(rect.left+rect.width/2, rect.top+rect.height/2, true); toast('¡Objetivo alcanzado!'); }
@@ -202,6 +254,12 @@
       pill.title = 'XP diario / total';
       pill.textContent = `XP: ${g.xpToday}/${goal} · Total: ${g.xpTotal}`;
       t.appendChild(pill);
+      const lvl = document.createElement('span');
+      lvl.id = 'level-pill';
+      lvl.className = 'badge';
+      const lv = computeLevel();
+      lvl.textContent = `Nivel ${lv} · ${titleForLevel(lv)}`;
+      t.appendChild(lvl);
     })();
 
     days.forEach(day => {
@@ -249,6 +307,10 @@
         const rectBody = document.body.getBoundingClientRect();
         celebrate(rectBody.width/2, 120, true);
 
+        // Perfect Day bonus + sticker
+        addXP(10);
+        giveSticker(`perfect-${day.iso}`);
+
         if(isFriday(day)){
           if(!state.achievements.weeks) state.achievements.weeks = {};
           if(!state.achievements.weeks[day.iso]){
@@ -273,6 +335,12 @@
       foot.appendChild(hint);
       card.appendChild(foot);
 
+      // Daily quest check: midday targets met
+      const dq = ensureDailyQuest(day.iso);
+      const midT = day.targets.midday;
+      const midOK = (pClamped.midday.pushups >= midT.pushups) && (pClamped.midday.dumbR >= midT.dumbR) && (pClamped.midday.dumbL >= midT.dumbL);
+      if(midOK && !dq.rewarded){ dq.done = true; dq.rewarded = true; addXP(15); giveSticker(`daily-${day.iso}`); save(); }
+
       root.appendChild(card);
     });
 
@@ -282,6 +350,8 @@
       const goal = 100;
       xpPill.textContent = `XP: ${g.xpToday}/${goal} · Total: ${g.xpTotal}`;
     }
+    const levelPill = document.getElementById('level-pill');
+    if (levelPill){ const lv = computeLevel(); levelPill.textContent = `Nivel ${lv} · ${titleForLevel(lv)}`; }
 
     // Global streak across calendar days (skip configured rest day)
     function computeStreakGlobal(){
@@ -341,6 +411,28 @@
 
       if((g.streak||0) >= 7) give('streak7', '🔥 Badge: Streak 7');
       if((g.streak||0) >= 12) give('streak12', '🔥 Badge: Streak 12');
+    })();
+
+    // Weekly quest: count perfect days this ISO week and reward
+    (function updateWeeklyQuest(){
+      const todayStr = todayIso();
+      const wq = ensureWeeklyQuestForDate(todayStr);
+      const refWeek = getISOWeekKey(new Date(todayStr));
+      let count = 0;
+      days.forEach(d=>{
+        if (getISOWeekKey(new Date(d.iso)) !== refWeek) return;
+        const p = getProgressFor(d.iso);
+        const pC = {
+          morning:{ pushups: clamp(p.morning.pushups,0,d.targets.morning.pushups), dumbR: clamp(p.morning.dumbR,0,d.targets.morning.dumbR), dumbL: clamp(p.morning.dumbL,0,d.targets.morning.dumbL) },
+          midday:{  pushups: clamp(p.midday.pushups,0,d.targets.midday.pushups),   dumbR: clamp(p.midday.dumbR,0,d.targets.midday.dumbR),   dumbL: clamp(p.midday.dumbL,0,d.targets.midday.dumbL) },
+          evening:{ pushups: clamp(p.evening.pushups,0,d.targets.evening.pushups), dumbR: clamp(p.evening.dumbR,0,d.targets.evening.dumbR), dumbL: clamp(p.evening.dumbL,0,d.targets.evening.dumbL) },
+        };
+        if (isDay100(d, pC)) count++;
+      });
+      wq.count = count;
+      if (!wq.rewarded && count >= (wq.target||3)){
+        wq.rewarded = true; addXP(50); giveSticker(`weekly-${wq.key}`); save();
+      }
     })();
   }
 
