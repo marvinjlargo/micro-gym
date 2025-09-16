@@ -353,26 +353,39 @@
     const levelPill = document.getElementById('level-pill');
     if (levelPill){ const lv = computeLevel(); levelPill.textContent = `Nivel ${lv} · ${titleForLevel(lv)}`; }
 
-    // Global streak across calendar days (skip configured rest day)
+    // Global streak: count consecutive active days ending at the most recent active day.
+    // Skips the configured rest weekday.
     function computeStreakGlobal(){
       const skip = Number(state.cfg.skipWeekday || -1);
       const oneDay = 24*60*60*1000;
       let d = new Date();
-      let streak = 0;
       let guard = 0;
 
-      while (guard++ < 2000){
-        if (skip >= 0 && d.getDay() === skip){
-          d = new Date(d.getTime() - oneDay);
-          continue;
-        }
-        const iso = d2iso(d);
+      // 1) Find most recent active day at or before today
+      function isActiveOn(dateObj){
+        const iso = d2iso(dateObj);
         const p = state.progress[iso];
-        const active = p && (['morning','midday','evening'].some(s => {
+        if (!p) return false;
+        return ['morning','midday','evening'].some(s => {
           const x = p[s] || {pushups:0,dumbR:0,dumbL:0};
           return (x.pushups + x.dumbR + x.dumbL) > 0;
-        }));
-        if (!active) break;
+        });
+      }
+
+      while (guard++ < 2000){
+        if (skip >= 0 && d.getDay() === skip){ d = new Date(d.getTime() - oneDay); continue; }
+        if (isActiveOn(d)) break; // found latest active day
+        d = new Date(d.getTime() - oneDay);
+      }
+
+      if (guard >= 2000) return 0; // safety
+
+      // 2) Count consecutive active days backwards from that point
+      let streak = 0;
+      let guard2 = 0;
+      while (guard2++ < 2000){
+        if (skip >= 0 && d.getDay() === skip){ d = new Date(d.getTime() - oneDay); continue; }
+        if (!isActiveOn(d)) break;
         streak++;
         d = new Date(d.getTime() - oneDay);
       }
