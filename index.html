@@ -52,6 +52,21 @@
   <!-- Confetti container (celebration) and toast (small popup message) -->
   <div class="boom" id="boom"></div>
   <div class="toast" id="toast"></div>
+  <!-- Bottom nav for mobile -->
+  <nav class="bottom-nav" id="bottom-nav" aria-label="Navegación">
+    <button id="nav-today" class="nav-btn" title="Hoy">🏠
+      <span class="mini">Hoy</span>
+    </button>
+    <button id="nav-calendar" class="nav-btn" title="Calendario">📅
+      <span class="mini">Calendario</span>
+    </button>
+    <button id="nav-stats" class="nav-btn" title="Estadísticas">📈
+      <span class="mini">Stats</span>
+    </button>
+    <button id="nav-settings" class="nav-btn" title="Ajustes">⚙️
+      <span class="mini">Ajustes</span>
+    </button>
+  </nav>
 
   <!-- Settings modal: opened by the "Configurar" button -->
   <dialog id="modal">
@@ -137,6 +152,24 @@
       <p style="margin:0 0 8px 0">¡Reto de 12 días completado! Eres una máquina.</p>
       <button class="btn" onclick="document.getElementById('achv-modal').close()">Cerrar</button>
     </div>
+  </dialog>
+
+  <!-- Calendar modal -->
+  <dialog id="calendar-modal">
+    <div class="modal-head">
+      <strong>Calendario</strong>
+      <button onclick="document.getElementById('calendar-modal').close()">✖</button>
+    </div>
+    <div class="modal-body" id="calendar-body" style="display:grid; gap:10px"></div>
+  </dialog>
+
+  <!-- Stats modal -->
+  <dialog id="stats-modal">
+    <div class="modal-head">
+      <strong>Estadísticas</strong>
+      <button onclick="document.getElementById('stats-modal').close()">✖</button>
+    </div>
+    <div class="modal-body" id="stats-body" style="display:grid; gap:10px"></div>
   </dialog>
 
 <script type="text/plain" data-disabled="migrated">
@@ -596,5 +629,13 @@
 })();
 </script>
   <script defer src="app.js"></script>
+  <link rel="manifest" href="manifest.json" />
+  <script>
+    if ('serviceWorker' in navigator){
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+      });
+    }
+</script>
 </body>
 </html>

@@ -78,4 +78,16 @@ input[type="text"], input[type="date"], input[type="number"], select{ width:100%
 .toast{position:fixed; right:16px; bottom:16px; background:#132157; border:1px solid #2a3b84; padding:10px 14px; border-radius:12px; box-shadow:var(--shadow); opacity:0; transform: translateY(10px); transition: all .25s}
 .toast.show{opacity:1; transform: translateY(0)}
 
+/* Bottom navigation (mobile) */
+.bottom-nav{ position:fixed; bottom:0; left:0; right:0; z-index:12; display:flex; justify-content:space-around; background:rgba(10,16,40,.86); backdrop-filter: blur(8px); border-top:1px solid #1b2550; padding:8px 6px }
+.bottom-nav .nav-btn{ display:flex; flex-direction:column; align-items:center; gap:4px; background:transparent; border: none; color:var(--text); padding:8px 10px; border-radius:10px }
+.bottom-nav .nav-btn:active{ background:#0f1631 }
+
+/* Responsive grid becomes single-day on small screens */
+@media (max-width: 820px){
+  .grid{ display:block; padding-bottom:70px }
+  .card{ margin:10px }
+  header .wrap{ padding-bottom:8px }
+}
+
 

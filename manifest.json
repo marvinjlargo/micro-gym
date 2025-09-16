@@ -1,0 +1,10 @@
+{
+  "name": "Office Micro-Gym",
+  "short_name": "Micro-Gym",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "icons": []
+}
+

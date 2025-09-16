@@ -20,6 +20,7 @@
   state.achievements = state.achievements || { days:{}, weeks:{}, challenge12:false };
   state.gamify = state.gamify || { xpTotal: 0, xpToday: 0, lastXPDay: '', streak: 0, streakBest: 0, badges: {}, firstMoveDay: '' };
   state.quests = state.quests || { daily:{}, weekly:{}, stickers:{} };
+  state.ui = state.ui || { selectedIso: '' };
 
   // Helpers
   function parseISO(s){ const [Y,M,D] = s.split('-').map(Number); return new Date(Y, M-1, D); }
@@ -216,10 +217,20 @@
     const p = getProgressFor(iso);
     span.textContent = p[slot][field];
 
+    let holdTimerL, holdTimerR;
+    const step = (delta)=>{ p[slot][field] = clamp(p[slot][field]+delta, 0, 999); save(); span.textContent = p[slot][field]; };
+    less.onmousedown = ()=>{ holdTimerL = setInterval(()=>step(-1), 120); };
+    less.onmouseup = less.onmouseleave = ()=>{ clearInterval(holdTimerL); };
+    less.ontouchstart = (e)=>{ e.preventDefault(); holdTimerL = setInterval(()=>step(-1), 120); };
+    less.ontouchend = less.ontouchcancel = ()=>{ clearInterval(holdTimerL); };
     less.onclick = ()=>{
       p[slot][field] = clamp(p[slot][field]-1, 0, 999);
       save(); span.textContent = p[slot][field];
     };
+    more.onmousedown = ()=>{ holdTimerR = setInterval(()=>{ p[slot][field] = clamp(p[slot][field]+1, 0, 999); save(); span.textContent = p[slot][field]; }, 120); };
+    more.onmouseup = more.onmouseleave = ()=>{ clearInterval(holdTimerR); };
+    more.ontouchstart = (e)=>{ e.preventDefault(); holdTimerR = setInterval(()=>{ p[slot][field] = clamp(p[slot][field]+1, 0, 999); save(); span.textContent = p[slot][field]; }, 120); };
+    more.ontouchend = more.ontouchcancel = ()=>{ clearInterval(holdTimerR); };
     more.onclick = (ev)=>{
       const today = todayIso();
       let bonus = 0;
@@ -247,6 +258,8 @@
     root.innerHTML = '';
     const days = buildDays();
     const today = todayIso();
+    const isMobile = window.matchMedia && window.matchMedia('(max-width: 820px)').matches;
+    if (!state.ui.selectedIso) state.ui.selectedIso = today;
 
     (function ensureXPBadge(){
       const t = document.querySelector('.title'); if(!t) return;
@@ -267,7 +280,8 @@
       t.appendChild(lvl);
     })();
 
-    days.forEach(day => {
+    const renderList = isMobile ? days.filter(d=>d.iso===state.ui.selectedIso) : days;
+    renderList.forEach(day => {
       const p = getProgressFor(day.iso);
       const tSum =
         day.targets.morning.pushups + day.targets.morning.dumbR + day.targets.morning.dumbL +
@@ -447,6 +461,20 @@
         wq.rewarded = true; addXP(50); giveSticker(`weekly-${wq.key}`); save();
       }
     })();
+
+    // Mobile swipe navigation
+    if (isMobile){
+      let sx=0; let ex=0;
+      root.ontouchstart = (e)=>{ sx = e.touches[0].clientX; };
+      root.ontouchend = (e)=>{
+        ex = (e.changedTouches && e.changedTouches[0].clientX) || sx;
+        const dx = ex - sx; if (Math.abs(dx) < 40) return;
+        const dir = dx<0 ? 1 : -1;
+        let idx = Math.max(0, days.findIndex(d=>d.iso===state.ui.selectedIso));
+        idx = Math.min(days.length-1, Math.max(0, idx + dir));
+        state.ui.selectedIso = days[idx].iso; save(); render();
+      };
+    }
   }
 
   function openSettings(){
@@ -549,6 +577,38 @@
       `).join('')}
     `;
     document.getElementById('achv-list').showModal();
+  }
+
+  // Calendar modal
+  function openCalendar(){
+    const body = document.getElementById('calendar-body'); if(!body) return;
+    const ds = buildDays();
+    body.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.style.display='grid'; grid.style.gridTemplateColumns='repeat(7, 1fr)'; grid.style.gap='6px';
+    ds.forEach(d=>{
+      const pp = getProgressFor(d.iso);
+      const active = ['morning','midday','evening'].some(s=>{ const x=pp[s]; return (x.pushups+x.dumbR+x.dumbL)>0; });
+      const cell = document.createElement('div'); cell.className='pill'; cell.style.textAlign='center'; cell.style.padding='8px 0';
+      cell.style.opacity = active? '1' : '.45'; cell.textContent = new Date(d.iso).getDate();
+      cell.onclick = ()=>{ state.ui.selectedIso = d.iso; save(); document.getElementById('calendar-modal').close(); render(); };
+      grid.appendChild(cell);
+    });
+    body.appendChild(grid);
+    const dlg = document.getElementById('calendar-modal'); if(dlg && dlg.showModal) dlg.showModal();
+  }
+
+  // Stats modal
+  function openStats(){
+    const body = document.getElementById('stats-body'); if(!body) return;
+    const {pu, lifts} = totalsAll();
+    const g = state.gamify || {streak:0, streakBest:0};
+    body.innerHTML = `
+      <div class="pill">Total push‑ups: <strong>${pu}</strong></div>
+      <div class="pill">Total lifts: <strong>${lifts}</strong></div>
+      <div class="pill">Racha actual: <strong>${g.streak||0}</strong> · Mejor: <strong>${g.streakBest||0}</strong></div>
+    `;
+    const dlg = document.getElementById('stats-modal'); if(dlg && dlg.showModal) dlg.showModal();
   }
 
   // Init
