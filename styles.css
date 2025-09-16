@@ -1,0 +1,81 @@
+:root{
+  /* Theme colors — change these to adjust the color scheme */
+  --bg: #0b1020;
+  --card: #111936;
+  --muted: #8da0ff;
+  --accent: #56f0c4;
+  --accent-2: #8ef;
+  --text: #eef1ff;
+  --ok: #67ff9b;
+  --warn:#ffd166;
+  --danger:#ff6b6b;
+  --ring:#19224b;
+  --shadow: 0 10px 30px rgba(0,0,0,.25);
+  --radius: 18px;
+}
+html,body{height:100%;}
+body{
+  margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  color:var(--text);
+  background:
+    radial-gradient(60vw 60vw at 10% -10%, #14214a 0%, rgba(20,33,74,0) 60%),
+    radial-gradient(70vw 70vw at 100% 0%, #0e1b37 0%, rgba(14,27,55,0) 60%),
+    linear-gradient(180deg, #070b17, #0b1020);
+}
+header{
+  position:sticky; top:0; z-index:10; backdrop-filter: blur(8px);
+  background: linear-gradient(180deg, rgba(7,11,23,.85), rgba(7,11,23,.55));
+  border-bottom: 1px solid #1c254f; box-shadow: var(--shadow);
+}
+.wrap{max-width:1100px; margin:0 auto; padding:14px 18px;}
+.title{display:flex; align-items:center; gap:12px}
+.badge{font-size:12px; letter-spacing:.6px; padding:4px 10px; border-radius:999px; background:#1a2454; color:var(--muted); border:1px solid #2b3a7c}
+.spacer{flex:1}
+button, .btn{cursor:pointer; border-radius:12px; border:1px solid #2a355f; background:#121a3a; color:var(--text); padding:10px 14px; box-shadow:var(--shadow)}
+button:hover, .btn:hover{border-color:#3b4a86; background:#0f1631}
+.grid{display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:16px; padding:18px}
+.card{background:var(--card); border:1px solid #1c254f; border-radius:var(--radius); box-shadow: var(--shadow); position:relative; overflow:hidden}
+.card-head{display:flex; align-items:center; gap:12px; padding:16px; border-bottom:1px solid #1b2550}
+.day-ring{width:52px;height:52px; background:
+  conic-gradient(var(--accent) calc(var(--pct)*1%), #29346e 0);
+  border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:12px; color:#bfe}
+.day-ring::after{content:""; width:40px;height:40px; background:var(--ring); border-radius:50%}
+.day-info{display:grid}
+.day-info small{color:#a7b5ff}
+.slot{padding:12px 14px; display:grid; gap:8px; border-top:1px dashed #24306b}
+.slot-head{display:flex; align-items:center; justify-content:space-between}
+.slot-head .when{font-weight:700; color:#cfe3ff}
+.slot-head .done{font-size:12px; color:#a5ffcf}
+.exercise{display:grid; grid-template-columns: 1.4fr .8fr auto; gap:10px; align-items:center}
+.label{opacity:.9}
+.counter{display:flex; align-items:center; gap:8px; justify-content:flex-end}
+.count{min-width:28px; text-align:center; font-weight:700; background:#0e1533; padding:6px 10px; border-radius:10px; border:1px solid #27306a}
+.mini{font-size:12px; opacity:.8}
+.pill{font-size:11px; padding:4px 8px; border-radius:999px; background:#0e1634; border:1px solid #283373; color:#9ad8ff}
+.footer{display:flex; gap:10px; padding:14px 18px; border-top:1px solid #1b2550; flex-wrap:wrap}
+.hint{color:#bcd1ff; opacity:.9}
+.strike{ text-decoration: line-through; opacity:.55 }
+
+/* Confetti */
+.boom{position:fixed; inset:0; pointer-events:none;}
+.piece{position:absolute; width:8px; height:8px; border-radius:2px; opacity:0; animation: pop 900ms ease-out forwards}
+@keyframes pop{ 0%{ transform: translate(var(--x), var(--y)) scale(.6) rotate(0deg); opacity:1 }
+                80%{ opacity:1 }
+                100%{ transform: translate(calc(var(--x) * 4), calc(var(--y) * 4)) scale(1.25) rotate(720deg); opacity:0 } }
+
+/* Modal */
+dialog{ border:none; border-radius:16px; padding:0; background:#0e1634; color:var(--text); box-shadow: var(--shadow); width:min(760px, 92vw)}
+dialog::backdrop{ background:rgba(0,0,0,.5) }
+.modal-head{display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid #1b2550}
+.modal-body{padding:16px 18px; display:grid; gap:14px}
+.row{display:grid; grid-template-columns: 1fr 1fr; gap:12px}
+input[type="text"], input[type="date"], input[type="number"], select{ width:100%; padding:10px; border-radius:12px; border:1px solid #2a355f; background:#0a1231; color:var(--text) }
+.switch{ display:flex; align-items:center; gap:10px}
+
+.legend{display:flex; gap:10px; flex-wrap:wrap}
+.legend .pill{background:#12204a}
+
+.toast{position:fixed; right:16px; bottom:16px; background:#132157; border:1px solid #2a3b84; padding:10px 14px; border-radius:12px; box-shadow:var(--shadow); opacity:0; transform: translateY(10px); transition: all .25s}
+.toast.show{opacity:1; transform: translateY(0)}
+
+
