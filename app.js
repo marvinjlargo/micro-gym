@@ -162,26 +162,31 @@
     if (prefersReduced){ toast('¡Objetivo alcanzado!'); return; }
     const boom = document.getElementById('boom');
     const colors = ['#56f0c4','#67ff9b','#8ef','#ffd166','#ff6b6b','#c084fc'];
-    for(let i=0;i<(big?80:28);i++){
+    const count = big ? 160 : 28;
+    const duration = big ? 1600 : 900;
+    for(let i=0;i<count;i++){
       const el = document.createElement('div');
       el.className='piece';
       const a = (Math.random()*Math.PI*2);
-      const r = 20+Math.random()*60;
+      const r = (big? 80:20) + Math.random()*(big? 120:60);
       el.style.setProperty('--x', Math.cos(a)*r+'px');
       el.style.setProperty('--y', Math.sin(a)*r+'px');
       el.style.left = x+'px'; el.style.top = y+'px';
       el.style.background = colors[i%colors.length];
-      el.style.animationDelay = (Math.random()*80)+'ms';
+      el.style.animationDelay = (Math.random()*120)+'ms';
+      el.style.animationDuration = duration+'ms';
       boom.appendChild(el);
-      setTimeout(()=>el.remove(), 1000);
+      setTimeout(()=>el.remove(), duration+400);
     }
   }
   function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000); }
   function megaCelebrate(){
-    const cx = window.innerWidth/2, cy = window.innerHeight/2;
-    celebrate(cx, cy, true);
-    setTimeout(()=>celebrate(cx-120, cy-60, true), 120);
-    setTimeout(()=>celebrate(cx+120, cy+40, true), 220);
+    const w = window.innerWidth, h = window.innerHeight;
+    const spots = [
+      [w*0.5, h*0.4], [w*0.25, h*0.3], [w*0.75, h*0.45],
+      [w*0.15, h*0.6], [w*0.85, h*0.6], [w*0.5, h*0.7]
+    ];
+    spots.forEach((p,i)=> setTimeout(()=>celebrate(p[0], p[1], true), i*120));
   }
 
   function renderSlot(key, whenLabel, day, prog){
