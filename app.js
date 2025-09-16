@@ -353,41 +353,36 @@
     const levelPill = document.getElementById('level-pill');
     if (levelPill){ const lv = computeLevel(); levelPill.textContent = `Nivel ${lv} · ${titleForLevel(lv)}`; }
 
-    // Global streak: count consecutive active days ending at the most recent active day.
-    // Skips the configured rest weekday.
+    // Global streak: based on actual active days in history, allowing only rest-day gaps.
     function computeStreakGlobal(){
       const skip = Number(state.cfg.skipWeekday || -1);
-      const oneDay = 24*60*60*1000;
-      let d = new Date();
-      let guard = 0;
-
-      // 1) Find most recent active day at or before today
-      function isActiveOn(dateObj){
-        const iso = d2iso(dateObj);
-        const p = state.progress[iso];
-        if (!p) return false;
-        return ['morning','midday','evening'].some(s => {
-          const x = p[s] || {pushups:0,dumbR:0,dumbL:0};
-          return (x.pushups + x.dumbR + x.dumbL) > 0;
-        });
-      }
-
-      while (guard++ < 2000){
-        if (skip >= 0 && d.getDay() === skip){ d = new Date(d.getTime() - oneDay); continue; }
-        if (isActiveOn(d)) break; // found latest active day
-        d = new Date(d.getTime() - oneDay);
-      }
-
-      if (guard >= 2000) return 0; // safety
-
-      // 2) Count consecutive active days backwards from that point
-      let streak = 0;
-      let guard2 = 0;
-      while (guard2++ < 2000){
-        if (skip >= 0 && d.getDay() === skip){ d = new Date(d.getTime() - oneDay); continue; }
-        if (!isActiveOn(d)) break;
+      // Collect all active ISO dates
+      const active = Object.keys(state.progress||{})
+        .filter(iso=>{
+          const p = state.progress[iso];
+          if (!p) return false;
+          return ['morning','midday','evening'].some(s=>{
+            const x = p[s] || {pushups:0,dumbR:0,dumbL:0};
+            return (x.pushups + x.dumbR + x.dumbL) > 0;
+          });
+        })
+        .sort();
+      if (active.length === 0) return 0;
+      // Start from most recent active day
+      let streak = 1;
+      for (let i = active.length - 2; i >= 0; i--){
+        const newer = parseISO(active[i+1]);
+        const older = parseISO(active[i]);
+        // How many days between older -> newer
+        const diffDays = Math.round((newer - older) / (24*60*60*1000));
+        if (diffDays <= 0) continue;
+        let ok = true;
+        for (let d = 1; d < diffDays; d++){
+          const mid = new Date(newer.getTime() - d*24*60*60*1000);
+          if (!(skip >= 0 && mid.getDay() === skip)) { ok = false; break; }
+        }
+        if (!ok) break;
         streak++;
-        d = new Date(d.getTime() - oneDay);
       }
       return streak;
     }
