@@ -619,6 +619,16 @@
   document.getElementById('btn-import').onclick=importData;
   document.getElementById('btn-achv').onclick = openAchievementsList;
   document.getElementById('btn-reset').onclick=()=>{ if(confirm('¿Borrar configuración y progreso?')){ localStorage.removeItem(STORAGE_KEY); state = { version:1, cfg: DEFAULT, progress:{} }; state.cfg = Object.assign({}, DEFAULT, state.cfg || {}); render(); } };
+
+  // Bottom nav wiring
+  const navToday = document.getElementById('nav-today');
+  const navCal = document.getElementById('nav-calendar');
+  const navStats = document.getElementById('nav-stats');
+  const navSettings = document.getElementById('nav-settings');
+  if(navToday) navToday.onclick = ()=>{ state.ui.selectedIso = todayIso(); save(); render(); };
+  if(navCal) navCal.onclick = openCalendar;
+  if(navStats) navStats.onclick = openStats;
+  if(navSettings) navSettings.onclick = openSettings;
 })();
 
 
