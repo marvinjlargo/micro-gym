@@ -211,6 +211,7 @@
     if(target===0){ lb.classList.add('strike'); }
     const tgt = document.createElement('div'); tgt.className='pill'; tgt.textContent = target>0? ('Meta: '+target) : '— sin objetivo —';
     const ctr = document.createElement('div'); ctr.className='counter';
+    const timerBtn = document.createElement('button'); timerBtn.className='timer-btn'; timerBtn.textContent='▶ Timer';
     const less = document.createElement('button'); less.textContent='－';
     const span = document.createElement('span'); span.className='count';
     const more = document.createElement('button'); more.textContent='＋';
@@ -248,8 +249,13 @@
       render();
     };
 
-    ctr.appendChild(less); ctr.appendChild(span); ctr.appendChild(more);
+    ctr.appendChild(timerBtn); ctr.appendChild(less); ctr.appendChild(span); ctr.appendChild(more);
     row.appendChild(lb); row.appendChild(tgt); row.appendChild(ctr);
+
+    // Rep Timer wiring
+    timerBtn.onclick = ()=>{
+      openRepTimer({ label, iso, slot, field });
+    };
     return row;
   }
 
@@ -629,6 +635,98 @@
   if(navCal) navCal.onclick = openCalendar;
   if(navStats) navStats.onclick = openStats;
   if(navSettings) navSettings.onclick = openSettings;
+
+  // Rep Timer state and functions
+  let repTimerState = { running:false, raf:0, phase:'up', phaseStart:0, tutStart:0, tutElapsed:0 };
+
+  function openRepTimer(ctx){
+    const overlay = document.getElementById('rep-timer'); if(!overlay) return;
+    const ring = document.getElementById('rep-ring');
+    const prog = document.getElementById('rep-progress');
+    const phaseEl = document.getElementById('rep-phase');
+    const cdEl = document.getElementById('rep-countdown');
+    const tutEl = document.getElementById('rep-tut');
+    const closeBtn = document.getElementById('rep-close');
+    const stopBtn = document.getElementById('rep-stop');
+
+    // SVG progress setup
+    const r = 54; const circumference = 2 * Math.PI * r;
+    prog.style.strokeDasharray = String(circumference);
+    prog.style.strokeDashoffset = String(circumference);
+
+    overlay.classList.remove('hidden');
+    overlay.setAttribute('aria-hidden','false');
+    if (ring) ring.classList.remove('down');
+    if (phaseEl) phaseEl.textContent = 'UP 💪';
+    if (cdEl) cdEl.textContent = '';
+    if (tutEl){ tutEl.textContent = '0s TUT'; tutEl.classList.remove('sweet'); }
+
+    repTimerState.running = true;
+    repTimerState.phase = 'up';
+    const now = performance.now();
+    repTimerState.phaseStart = now;
+    repTimerState.tutStart = now;
+    repTimerState.tutElapsed = 0;
+
+    function step(ts){
+      if (!repTimerState.running) return;
+      const UP_MS = 1000; // 1s up
+      const DOWN_MS = 3000; // 3s down
+      const isUp = repTimerState.phase === 'up';
+      const dur = isUp ? UP_MS : DOWN_MS;
+      const t0 = repTimerState.phaseStart;
+      const frac = Math.min(1, Math.max(0, (ts - t0) / dur));
+      const fill = isUp ? frac : (1 - frac);
+      // progress ring: 1 -> full, 0 -> empty
+      const offset = circumference * (1 - fill);
+      prog.style.strokeDashoffset = String(offset);
+
+      // phase UI
+      if (ring){ ring.classList.toggle('down', !isUp); }
+      if (phaseEl){ phaseEl.textContent = isUp ? 'UP 💪' : 'DOWN ⬇️'; }
+      if (cdEl){
+        if (!isUp){
+          const remaining = Math.ceil((DOWN_MS - (ts - t0)) / 1000);
+          cdEl.textContent = String(Math.max(1, Math.min(3, remaining)));
+        } else {
+          cdEl.textContent = '';
+        }
+      }
+
+      // TUT update
+      const tutSecs = Math.floor((ts - repTimerState.tutStart) / 1000);
+      if (tutEl){
+        tutEl.textContent = tutSecs + 's TUT';
+        const inRange = tutSecs >= 45 && tutSecs <= 60;
+        tutEl.classList.toggle('sweet', inRange);
+      }
+
+      // loop transition
+      if (frac >= 1){
+        repTimerState.phase = isUp ? 'down' : 'up';
+        repTimerState.phaseStart = ts;
+      }
+      repTimerState.raf = requestAnimationFrame(step);
+    }
+    cancelAnimationFrame(repTimerState.raf);
+    repTimerState.raf = requestAnimationFrame(step);
+
+    function close(){ closeRepTimer(); }
+    if (closeBtn) closeBtn.onclick = close;
+    if (stopBtn) stopBtn.onclick = close;
+    overlay.onclick = (e)=>{ if (e.target === overlay) closeRepTimer(); };
+    window.addEventListener('keydown', escCloseOnce, { once:true });
+  }
+
+  function escCloseOnce(e){ if (e.key === 'Escape') closeRepTimer(); }
+
+  function closeRepTimer(){
+    repTimerState.running = false;
+    cancelAnimationFrame(repTimerState.raf);
+    const overlay = document.getElementById('rep-timer'); if(!overlay) return;
+    overlay.classList.add('hidden');
+    overlay.setAttribute('aria-hidden','true');
+  }
 })();
 
 

@@ -52,6 +52,22 @@
   <!-- Confetti container (celebration) and toast (small popup message) -->
   <div class="boom" id="boom"></div>
   <div class="toast" id="toast"></div>
+  <!-- Rep Timer Overlay -->
+  <div id="rep-timer" class="rep-timer hidden" aria-hidden="true" role="dialog" aria-label="Rep Timer">
+    <button class="rep-close" id="rep-close" title="Cerrar">✖</button>
+    <div class="rep-center">
+      <div class="rep-ring" id="rep-ring">
+        <svg viewBox="0 0 120 120" class="rep-svg" aria-hidden="true">
+          <circle cx="60" cy="60" r="54" class="rep-track"></circle>
+          <circle cx="60" cy="60" r="54" class="rep-progress" id="rep-progress"></circle>
+        </svg>
+        <div class="rep-phase" id="rep-phase">UP 💪</div>
+        <div class="rep-countdown" id="rep-countdown"></div>
+      </div>
+      <div class="rep-tut" id="rep-tut">0s TUT</div>
+      <button class="rep-stop" id="rep-stop">Detener</button>
+    </div>
+  </div>
   <!-- Bottom nav for mobile -->
   <nav class="bottom-nav" id="bottom-nav" aria-label="Navegación">
     <button id="nav-today" class="nav-btn" title="Hoy">🏠
